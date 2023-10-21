@@ -1,4 +1,5 @@
 use crate::envelope::{hex, Datagram, Protocol, Segment, Syn};
+use crate::fs::FileSystem;
 use crate::net::{SocketPair, TcpListener, UdpSocket};
 use crate::world::World;
 use crate::{Envelope, TRACING_TARGET};
@@ -37,6 +38,9 @@ pub(crate) struct Host {
 
     /// Set each time the software is run.
     now: Option<Instant>,
+
+    /// The host's file system
+    pub(crate) file_system: FileSystem,
 }
 
 impl Host {
@@ -48,6 +52,7 @@ impl Host {
             next_ephemeral_port: 49152,
             elapsed: Duration::ZERO,
             now: None,
+            file_system: FileSystem::default(),
         }
     }
 
