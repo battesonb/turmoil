@@ -82,7 +82,7 @@ mod readme;
 
 mod builder;
 
-use std::{net::IpAddr, path::Path};
+use std::net::IpAddr;
 
 pub use builder::Builder;
 
@@ -107,6 +107,7 @@ use host::Host;
 mod ip;
 pub use ip::IpVersion;
 
+#[cfg(feature = "fs")]
 pub mod fs;
 pub mod net;
 
@@ -122,6 +123,10 @@ pub use top::{LinkIter, LinksIter, SentRef};
 
 mod world;
 use world::World;
+
+mod fs_helpers;
+#[cfg(feature = "fs")]
+pub use fs_helpers::*;
 
 const TRACING_TARGET: &str = "turmoil";
 
@@ -188,23 +193,4 @@ pub fn partition(a: impl ToIpAddrs, b: impl ToIpAddrs) {
 /// Must be called from within a Turmoil simulation.
 pub fn repair(a: impl ToIpAddrs, b: impl ToIpAddrs) {
     World::current(|world| world.repair_many(a, b))
-}
-
-/// Prints the file system of the current host, if set.
-pub fn filesystem_view() -> String {
-    World::current(|world| world.current_host_mut().file_system.to_string())
-}
-
-/// Sets the working directory of the current host. The directory is not created.
-pub fn set_working_directory(path: impl AsRef<Path>) {
-    World::current(|world| {
-        world
-            .current_host_mut()
-            .file_system
-            .set_working_directory(path)
-    });
-}
-
-pub fn working_directory() -> String {
-    World::current(|world| world.current_host_mut().file_system.working_directory())
 }

@@ -22,3 +22,8 @@ pub fn is_a_directory() -> io::Error {
 pub fn not_a_directory() -> io::Error {
     io::Error::new(io::ErrorKind::Other, "Not a directory")
 }
+
+/// Error kind should be `ReadOnlyFilesystem` but it is marked unstable.
+pub fn read_only_filesystem() -> io::Error {
+    io::Error::new(io::ErrorKind::Other, "Read-only file system")
+}

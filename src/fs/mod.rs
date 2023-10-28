@@ -3,6 +3,7 @@
 //! They mirror [tokio::fs](https://docs.rs/tokio/latest/tokio/fs/) to provide a
 //! high fidelity implementation.
 
+mod copy;
 mod create_dir;
 mod create_dir_all;
 mod dir_builder;
@@ -18,6 +19,7 @@ mod write;
 
 pub(crate) use internal::*;
 
+pub use copy::*;
 pub use create_dir::*;
 pub use create_dir_all::*;
 pub use dir_builder::*;

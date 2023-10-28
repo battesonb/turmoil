@@ -1,4 +1,5 @@
 use crate::envelope::{hex, Datagram, Protocol, Segment, Syn};
+#[cfg(feature = "fs")]
 use crate::fs::FileSystem;
 use crate::net::{SocketPair, TcpListener, UdpSocket};
 use crate::world::World;
@@ -40,6 +41,7 @@ pub(crate) struct Host {
     now: Option<Instant>,
 
     /// The host's file system
+    #[cfg(feature = "fs")]
     pub(crate) file_system: FileSystem,
 }
 
@@ -52,6 +54,7 @@ impl Host {
             next_ephemeral_port: 49152,
             elapsed: Duration::ZERO,
             now: None,
+            #[cfg(feature = "fs")]
             file_system: FileSystem::default(),
         }
     }

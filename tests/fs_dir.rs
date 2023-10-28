@@ -1,153 +1,160 @@
-use std::path::Path;
+//! These tests mirror those of
+//! <https://github.com/tokio-rs/tokio/blob/master/tokio/tests/fs_dir.rs>
 
-use tokio_test::{assert_err, assert_ok};
-use turmoil::{
-    fs::{self, try_exists},
-    Builder, Result,
-};
+#[cfg(all(test, feature = "fs"))]
+mod test {
+    use std::path::Path;
 
-#[test]
-fn create_dir() -> Result {
-    let mut sim = Builder::new().build();
+    use tokio_test::{assert_err, assert_ok};
+    use turmoil::{
+        fs::{self, try_exists},
+        Builder, Result,
+    };
 
-    sim.client("server", async move {
-        let new_dir = Path::new("foo");
+    #[test]
+    fn create_dir() -> Result {
+        let mut sim = Builder::new().build();
 
-        assert_ok!(fs::create_dir(&new_dir).await);
+        sim.client("server", async move {
+            let new_dir = Path::new("foo");
 
-        assert!(try_exists(new_dir).await?);
+            assert_ok!(fs::create_dir(&new_dir).await);
 
-        Ok(())
-    });
+            assert!(try_exists(new_dir).await?);
 
-    sim.run()
-}
+            Ok(())
+        });
 
-#[test]
-fn create_all() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        let new_dir = Path::new("foo").join("bar");
+    #[test]
+    fn create_all() -> Result {
+        let mut sim = Builder::new().build();
 
-        assert_ok!(fs::create_dir_all(&new_dir).await);
+        sim.client("server", async move {
+            let new_dir = Path::new("foo").join("bar");
 
-        assert!(try_exists(new_dir).await?);
+            assert_ok!(fs::create_dir_all(&new_dir).await);
 
-        Ok(())
-    });
+            assert!(try_exists(new_dir).await?);
 
-    sim.run()
-}
+            Ok(())
+        });
 
-#[test]
-fn build_dir_recursive() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        let new_dir = Path::new("foo").join("bar");
+    #[test]
+    fn build_dir_recursive() -> Result {
+        let mut sim = Builder::new().build();
 
-        assert_ok!(fs::DirBuilder::new().recursive(true).create(&new_dir).await);
+        sim.client("server", async move {
+            let new_dir = Path::new("foo").join("bar");
 
-        assert!(try_exists(&new_dir).await?);
-        assert_err!(fs::DirBuilder::new().recursive(false).create(new_dir).await);
-        Ok(())
-    });
+            assert_ok!(fs::DirBuilder::new().recursive(true).create(&new_dir).await);
 
-    sim.run()
-}
+            assert!(try_exists(&new_dir).await?);
+            assert_err!(fs::DirBuilder::new().recursive(false).create(new_dir).await);
+            Ok(())
+        });
 
-#[test]
-fn build_dir_not_recursive() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        let new_dir = Path::new("foo").join("bar");
+    #[test]
+    fn build_dir_not_recursive() -> Result {
+        let mut sim = Builder::new().build();
 
-        assert_err!(
-            fs::DirBuilder::new()
-                .recursive(false)
-                .create(&new_dir)
-                .await
-        );
-        Ok(())
-    });
+        sim.client("server", async move {
+            let new_dir = Path::new("foo").join("bar");
 
-    sim.run()
-}
+            assert_err!(
+                fs::DirBuilder::new()
+                    .recursive(false)
+                    .create(&new_dir)
+                    .await
+            );
+            Ok(())
+        });
 
-#[test]
-fn remove() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        let new_dir = Path::new("foo");
+    #[test]
+    fn remove() -> Result {
+        let mut sim = Builder::new().build();
 
-        fs::create_dir(&new_dir).await.unwrap();
+        sim.client("server", async move {
+            let new_dir = Path::new("foo");
 
-        assert_ok!(fs::remove_dir(&new_dir).await);
-        assert!(!try_exists(new_dir).await?);
-        Ok(())
-    });
+            fs::create_dir(&new_dir).await.unwrap();
 
-    sim.run()
-}
+            assert_ok!(fs::remove_dir(&new_dir).await);
+            assert!(!try_exists(new_dir).await?);
+            Ok(())
+        });
 
-#[test]
-fn read_inherent() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        let base_path = Path::new("/");
+    #[test]
+    fn read_inherent() -> Result {
+        let mut sim = Builder::new().build();
 
-        fs::create_dir(base_path.join("aa")).await?;
-        fs::create_dir(base_path.join("bb")).await?;
-        fs::create_dir(base_path.join("cc")).await?;
+        sim.client("server", async move {
+            let base_path = Path::new("/");
 
-        let mut files = Vec::new();
+            fs::create_dir(base_path.join("aa")).await?;
+            fs::create_dir(base_path.join("bb")).await?;
+            fs::create_dir(base_path.join("cc")).await?;
 
-        let mut entries = fs::read_dir(&base_path).await.unwrap();
+            let mut files = Vec::new();
 
-        while let Some(e) = assert_ok!(entries.next_entry().await) {
-            let s = e.file_name().to_str().unwrap().to_string();
-            files.push(s);
-        }
+            let mut entries = fs::read_dir(&base_path).await.unwrap();
 
-        files.sort();
-        assert_eq!(
-            *files,
-            vec!["aa".to_string(), "bb".to_string(), "cc".to_string()]
-        );
+            while let Some(e) = assert_ok!(entries.next_entry().await) {
+                let s = e.file_name().to_str().unwrap().to_string();
+                files.push(s);
+            }
 
-        Ok(())
-    });
+            files.sort();
+            assert_eq!(
+                *files,
+                vec!["aa".to_string(), "bb".to_string(), "cc".to_string()]
+            );
 
-    sim.run()
-}
+            Ok(())
+        });
 
-#[test]
-fn read_dir_entry_info() -> Result {
-    let mut sim = Builder::new().build();
+        sim.run()
+    }
 
-    sim.client("server", async move {
-        // TODO: support root -- there are some issues with `/`
-        let base_path = Path::new("foo");
-        fs::create_dir_all(&base_path).await?;
-        let file_path = base_path.join("a.txt");
+    #[test]
+    fn read_dir_entry_info() -> Result {
+        let mut sim = Builder::new().build();
 
-        fs::write(&file_path, b"Hello File!").await.unwrap();
+        sim.client("server", async move {
+            // TODO: support root -- there are some issues with `/`
+            let base_path = Path::new("foo");
+            fs::create_dir_all(&base_path).await?;
+            let file_path = base_path.join("a.txt");
 
-        let mut dir = fs::read_dir(base_path).await.unwrap();
+            fs::write(&file_path, b"Hello File!").await.unwrap();
 
-        let first_entry = dir.next_entry().await.unwrap().unwrap();
+            let mut dir = fs::read_dir(base_path).await.unwrap();
 
-        assert_eq!(first_entry.path(), file_path);
-        assert_eq!(first_entry.file_name(), "a.txt");
-        // assert!(first_entry.metadata().await.unwrap().is_file());
-        // assert!(first_entry.file_type().await.unwrap().is_file());
+            let first_entry = dir.next_entry().await.unwrap().unwrap();
 
-        Ok(())
-    });
+            assert_eq!(first_entry.path(), file_path);
+            assert_eq!(first_entry.file_name(), "a.txt");
+            // TODO: Should we stub out some of `std`?
+            // assert!(first_entry.metadata().await.unwrap().is_file());
+            // assert!(first_entry.file_type().await.unwrap().is_file());
 
-    sim.run()
+            Ok(())
+        });
+
+        sim.run()
+    }
 }

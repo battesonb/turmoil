@@ -11,12 +11,13 @@ use crate::fs::DirEntry;
 
 use super::{errors, resolve_path};
 
-/// An in-memory representation of the file system.
+/// A virtual in-memory representation of a generic file system.
 #[derive(Clone, Debug, Default)]
 pub struct FileSystem {
     root: IndexMap<String, FileSystemEntry>,
     // TODO: Use this in `resolve_path`.
     working_directory: Vec<String>,
+    read_only: bool,
 }
 
 // TODO: Symlinks
@@ -32,6 +33,10 @@ impl FileSystem {
     }
 
     pub fn create_dir(&mut self, path: &Vec<String>, recursive: bool) -> io::Result<()> {
+        if self.read_only {
+            return Err(errors::read_only_filesystem());
+        }
+
         let mut fs = &mut self.root;
         if path.len() > 1 {
             for i in 0..(path.len() - 1) {
@@ -77,6 +82,10 @@ impl FileSystem {
     }
 
     pub fn create_file(&mut self, path: &Vec<String>, replace: bool) -> io::Result<()> {
+        if self.read_only {
+            return Err(errors::read_only_filesystem());
+        }
+
         let mut fs = &mut self.root;
 
         if path.len() == 0 {
@@ -189,6 +198,10 @@ impl FileSystem {
         path: &Vec<String>,
         ignore_children: bool,
     ) -> Result<(), io::Error> {
+        if self.read_only {
+            return Err(errors::read_only_filesystem());
+        }
+
         let mut fs = &mut self.root;
 
         if path.len() == 0 {
@@ -279,6 +292,10 @@ impl FileSystem {
         }
 
         Ok(None)
+    }
+
+    pub fn set_read_only(&mut self, read_only: bool) {
+        self.read_only = read_only;
     }
 }
 

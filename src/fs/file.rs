@@ -63,7 +63,7 @@ impl File {
 
     pub fn from_std(std: std::fs::File) -> File {
         _ = std;
-        panic!("turmoil will never support `File#from_std`");
+        panic!("turmoil does not support `File#from_std`");
     }
 
     pub async fn sync_all(&self) -> io::Result<()> {
@@ -80,7 +80,7 @@ impl File {
     }
 
     pub async fn metadata(&self) -> io::Result<Metadata> {
-        unimplemented!()
+        panic!("turmoil does not support `File#metadata`");
     }
 
     pub async fn try_clone(&self) -> io::Result<File> {
